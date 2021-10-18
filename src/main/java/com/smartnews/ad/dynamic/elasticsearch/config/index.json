@@ -100,43 +100,65 @@
       }
     }
   },
-  "mappings": {
-    "properties": {
-      "title": {
-        "type": "text",
-        "search_analyzer": "ja_kuromoji_search_analyzer",
-        "analyzer": "ja_kuromoji_index_analyzer",
-        "fields": {
-          "ngram": {
-            "type": "text",
-            "search_analyzer": "ja_ngram_search_analyzer",
-            "analyzer": "ja_ngram_index_analyzer"
+  "mappings" : {
+    "properties" : {
+      "description" : {
+        "type" : "text",
+        "fields" : {
+          "ngram" : {
+            "type" : "text",
+            "analyzer" : "ja_ngram_index_analyzer",
+            "search_analyzer" : "ja_ngram_search_analyzer"
           }
-        }
+        },
+        "analyzer" : "ja_kuromoji_index_analyzer",
+        "search_analyzer" : "ja_kuromoji_search_analyzer"
       },
-      "description": {
-        "type": "text",
-        "search_analyzer": "ja_kuromoji_search_analyzer",
-        "analyzer": "ja_kuromoji_index_analyzer",
-        "fields": {
-          "ngram": {
-            "type": "text",
-            "search_analyzer": "ja_ngram_search_analyzer",
-            "analyzer": "ja_ngram_index_analyzer"
-          }
-        }
+      "image_link" : {
+        "type" : "keyword"
       },
-      "catelog": {
-        "type": "text",
-        "search_analyzer": "ja_kuromoji_search_analyzer",
-        "analyzer": "ja_kuromoji_index_analyzer",
-        "fields": {
-          "ngram": {
-            "type": "text",
-            "search_analyzer": "ja_ngram_search_analyzer",
-            "analyzer": "ja_ngram_index_analyzer"
+      "second_category" : {
+        "type" : "text",
+        "fields" : {
+          "ngram" : {
+            "type" : "text",
+            "analyzer" : "ja_ngram_index_analyzer",
+            "search_analyzer" : "ja_ngram_search_analyzer"
           }
-        }
+        },
+        "analyzer" : "ja_kuromoji_index_analyzer",
+        "search_analyzer" : "ja_kuromoji_search_analyzer"
+      },
+      "third_category" : {
+        "type" : "text",
+        "fields" : {
+          "ngram" : {
+            "type" : "text",
+            "analyzer" : "ja_ngram_index_analyzer",
+            "search_analyzer" : "ja_ngram_search_analyzer"
+          }
+        },
+        "analyzer" : "ja_kuromoji_index_analyzer",
+        "search_analyzer" : "ja_kuromoji_search_analyzer"
+      },
+      "title" : {
+        "type" : "text",
+        "fields" : {
+          "ngram" : {
+            "type" : "text",
+            "analyzer" : "ja_ngram_index_analyzer",
+            "search_analyzer" : "ja_ngram_search_analyzer"
+          },
+          "suggestion" : {
+            "type" : "completion",
+            "analyzer" : "ja_ngram_search_analyzer",
+            "preserve_separators" : false,
+            "preserve_position_increments" : false,
+            "max_input_length" : 20
+          }
+        },
+        "analyzer" : "ja_kuromoji_index_analyzer",
+        "search_analyzer" : "ja_kuromoji_search_analyzer"
       }
     }
   }
