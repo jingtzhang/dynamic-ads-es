@@ -24,17 +24,25 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Client {
     private final RestHighLevelClient highLevelClient;
 
+    private final ThreadPoolExecutor executor;
+
     public Client() {
-        RestClientBuilder builder = RestClient.builder(new HttpHost("172.22.43.158", 9200),
-                new HttpHost("172.22.53.157", 9200),
-                new HttpHost("172.22.76.122", 9200));
+//        RestClientBuilder builder = RestClient.builder(new HttpHost("172.22.43.158", 9200),
+//                new HttpHost("172.22.53.157", 9200),
+//                new HttpHost("172.22.76.122", 9200));
+        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
         highLevelClient = new RestHighLevelClient(builder);
+        executor = new ThreadPoolExecutor(6, 20, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
     }
 
     public void close() throws IOException {
@@ -83,28 +91,81 @@ public class Client {
         return new String(Files.readAllBytes(Paths.get("src/main/java/com/smartnews/ad/dynamic/elasticsearch/config/index.json")));
     }
 
-    public void loadData(String index) throws IOException {
-        BulkRequest bulkRequest = new BulkRequest();
+    public void loadData(String index, int threads) throws IOException {
+//        BulkRequest bulkRequest = new BulkRequest();
 
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("mock_data.csv");
         Reader reader = new InputStreamReader(inputStream);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().withDelimiter('\t').parse(reader).getRecords();
-        for (int i = 0; i < records.size(); i++) {
-            CSVRecord record = records.get(i);
-            if (i > 0 && i % 10000 == 0) {
-                System.out.println("Collect " + i + " items, inserting...");
-                BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
-                System.out.println(bulkResponse.status());
-                System.out.println(bulkResponse.hasFailures());
+//        for (int i = 0; i < records.size(); i++) {
+//            CSVRecord record = records.get(i);
+//            if (i > 0 && i % 1000 == 0) {
+//                System.out.println("Collect " + i + " items, inserting...");
+//                BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+//                System.out.println(bulkResponse.status());
+//                System.out.println(bulkResponse.hasFailures());
+//                bulkRequest = new BulkRequest();
+//            }
+//            bulkRequest.add(new IndexRequest(index).source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
+//        }
+//        if (bulkRequest.numberOfActions() > 0) {
+//            System.out.println("Last " + bulkRequest.numberOfActions() + " items, inserting...");
+//            BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+//            System.out.println(bulkResponse.status());
+//            System.out.println(bulkResponse.hasFailures());
+//        }
+        List<BulkRequest> bulkRequests = new ArrayList<>(threads);
+        for (int i = 0; i < threads; i++) {
+            bulkRequests.add(new BulkRequest());
+        }
+//        BulkRequest bulkRequest1 = new BulkRequest();
+//        BulkRequest bulkRequest2 = new BulkRequest();
+//        BulkRequest bulkRequest3 = new BulkRequest();
+        for (int i = 0; i < threads; i++) {
+            int finalI = i;
+            executor.submit(() -> {
+                try {
+                    helper(highLevelClient, records, finalI, bulkRequests.get(finalI), threads);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+//        executor.submit(() -> {
+//            try {
+//                helper(highLevelClient, records, 0, bulkRequest1);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        executor.submit(() -> {
+//            try {
+//                helper(highLevelClient, records, 1, bulkRequest2);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        executor.submit(() -> {
+//            try {
+//                helper(highLevelClient, records, 2, bulkRequest3);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+        while (true);
+    }
+
+    private void helper(RestHighLevelClient client, List<CSVRecord> records, int index, BulkRequest bulkRequest, int threads) throws IOException {
+        for (int i = 0 ; i < records.size(); i++) {
+            if (i % threads == index) {
+                CSVRecord record = records.get(i);
+                bulkRequest.add(new IndexRequest("test-1").source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
+            }
+            if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 1000 == 0) {
+                System.out.println("Collect " + bulkRequest.numberOfActions() + " items, inserting...");
+                client.bulk(bulkRequest, RequestOptions.DEFAULT);
                 bulkRequest = new BulkRequest();
             }
-            bulkRequest.add(new IndexRequest(index).source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
-        }
-        if (bulkRequest.numberOfActions() > 0) {
-            System.out.println("Last " + bulkRequest.numberOfActions() + " items, inserting...");
-            BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
-            System.out.println(bulkResponse.status());
-            System.out.println(bulkResponse.hasFailures());
         }
     }
 }

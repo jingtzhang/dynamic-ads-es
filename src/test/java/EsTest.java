@@ -10,6 +10,6 @@ public class EsTest {
 
     @Test
     public void loadTest() throws IOException {
-        client.loadData("test-1");
+        client.loadData("test-1", 6);
     }
 }
