@@ -31,7 +31,9 @@ public class Client {
     private final RestHighLevelClient highLevelClient;
 
     public Client() {
-        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
+        RestClientBuilder builder = RestClient.builder(new HttpHost("172.22.43.158", 9200),
+                new HttpHost("172.22.53.157", 9200),
+                new HttpHost("172.22.76.122", 9200));
         highLevelClient = new RestHighLevelClient(builder);
     }
 
