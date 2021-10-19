@@ -10,6 +10,6 @@ public class EsTest {
 
     @Test
     public void loadTest() throws IOException, InterruptedException {
-        client.loadData("test-1", 3);
+        client.loadData("test-2", 5);
     }
 }

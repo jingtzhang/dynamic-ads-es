@@ -6,7 +6,6 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest.*;
 import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
@@ -40,7 +39,7 @@ public class Client {
                 new HttpHost("10.1.131.122", 9200));
 //        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
         highLevelClient = new RestHighLevelClient(builder);
-        executor = new ThreadPoolExecutor(3, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
+        executor = new ThreadPoolExecutor(10, 20, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
     }
 
     public void close() throws IOException {
@@ -136,10 +135,11 @@ public class Client {
 //            });
         }
         executor.invokeAll(todo);
-//        while (true);
+        while (true);
     }
 
     private void helper(String indexName, RestHighLevelClient client, List<CSVRecord> records, int index, BulkRequest bulkRequest, int threads) throws IOException {
+        bulkRequest.timeout("1m");
         for (int i = 0 ; i < records.size(); i++) {
             if (i % threads == index) {
                 CSVRecord record = records.get(i);
