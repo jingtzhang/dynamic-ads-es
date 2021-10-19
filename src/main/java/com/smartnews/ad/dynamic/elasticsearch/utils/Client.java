@@ -27,9 +27,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class Client {
     private final RestHighLevelClient highLevelClient;
@@ -37,12 +35,12 @@ public class Client {
     private final ThreadPoolExecutor executor;
 
     public Client() {
-//        RestClientBuilder builder = RestClient.builder(new HttpHost("172.22.43.158", 9200),
-//                new HttpHost("172.22.53.157", 9200),
-//                new HttpHost("172.22.76.122", 9200));
-        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
+        RestClientBuilder builder = RestClient.builder(new HttpHost("10.1.115.24", 9200),
+                new HttpHost("10.1.130.153", 9200),
+                new HttpHost("10.1.131.122", 9200));
+//        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
         highLevelClient = new RestHighLevelClient(builder);
-        executor = new ThreadPoolExecutor(6, 20, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
+        executor = new ThreadPoolExecutor(3, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
     }
 
     public void close() throws IOException {
@@ -91,7 +89,7 @@ public class Client {
         return new String(Files.readAllBytes(Paths.get("src/main/java/com/smartnews/ad/dynamic/elasticsearch/config/index.json")));
     }
 
-    public void loadData(String index, int threads) throws IOException {
+    public void loadData(String index, int threads) throws IOException, InterruptedException {
 //        BulkRequest bulkRequest = new BulkRequest();
 
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("mock_data.csv");
@@ -118,54 +116,44 @@ public class Client {
         for (int i = 0; i < threads; i++) {
             bulkRequests.add(new BulkRequest());
         }
-//        BulkRequest bulkRequest1 = new BulkRequest();
-//        BulkRequest bulkRequest2 = new BulkRequest();
-//        BulkRequest bulkRequest3 = new BulkRequest();
+        List<Callable<Object>> todo = new ArrayList<>();
         for (int i = 0; i < threads; i++) {
             int finalI = i;
-            executor.submit(() -> {
+            todo.add(Executors.callable(() -> {
                 try {
-                    helper(highLevelClient, records, finalI, bulkRequests.get(finalI), threads);
+                    helper(index, highLevelClient, records, finalI, bulkRequests.get(finalI), threads);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            });
+            }));
+
+//            executor.submit(() -> {
+//                try {
+//                    helper(index, highLevelClient, records, finalI, bulkRequests.get(finalI), threads);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            });
         }
-//        executor.submit(() -> {
-//            try {
-//                helper(highLevelClient, records, 0, bulkRequest1);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        executor.submit(() -> {
-//            try {
-//                helper(highLevelClient, records, 1, bulkRequest2);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        executor.submit(() -> {
-//            try {
-//                helper(highLevelClient, records, 2, bulkRequest3);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
-        while (true);
+        executor.invokeAll(todo);
+//        while (true);
     }
 
-    private void helper(RestHighLevelClient client, List<CSVRecord> records, int index, BulkRequest bulkRequest, int threads) throws IOException {
+    private void helper(String indexName, RestHighLevelClient client, List<CSVRecord> records, int index, BulkRequest bulkRequest, int threads) throws IOException {
         for (int i = 0 ; i < records.size(); i++) {
             if (i % threads == index) {
                 CSVRecord record = records.get(i);
-                bulkRequest.add(new IndexRequest("test-1").source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
+                bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
             }
             if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 1000 == 0) {
                 System.out.println("Collect " + bulkRequest.numberOfActions() + " items, inserting...");
                 client.bulk(bulkRequest, RequestOptions.DEFAULT);
                 bulkRequest = new BulkRequest();
             }
+        }
+        if (bulkRequest.numberOfActions() > 0) {
+            System.out.println("Last " + bulkRequest.numberOfActions() + " items, inserting...");
+            highLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
         }
     }
 }

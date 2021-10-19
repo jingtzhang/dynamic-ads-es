@@ -9,7 +9,7 @@ public class EsTest {
     private final Client client = new Client();
 
     @Test
-    public void loadTest() throws IOException {
-        client.loadData("test-1", 6);
+    public void loadTest() throws IOException, InterruptedException {
+        client.loadData("test-1", 3);
     }
 }
