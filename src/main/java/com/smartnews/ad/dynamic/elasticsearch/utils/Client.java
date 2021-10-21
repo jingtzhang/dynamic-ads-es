@@ -30,9 +30,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Time;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class Client {
@@ -112,16 +110,42 @@ public class Client {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
         Reader reader = new InputStreamReader(inputStream);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
-        long start = System.currentTimeMillis();
+        Set<String> uniqueQuery = new HashSet<>();
+        records.forEach(r -> uniqueQuery.add(r.get("keyword")));
+
+        List<Long> timeSpent = new ArrayList<>();
+        List<Long> hitCounts = new ArrayList<>();
+        long totalTime = 0;
         long totalAmount = 0;
-        for (CSVRecord record: records) {
-            SearchResponse response = query(index, record.get("keyword"), limit);
+
+        for (String queryString: uniqueQuery) {
+            long start = System.currentTimeMillis();
+            SearchResponse response = query(index, queryString, limit);
+            long end = System.currentTimeMillis();
+            timeSpent.add(end-start);
+
+            int hitCount = response.getHits().getHits().length;
+            hitCounts.add((long) hitCount);
+
             // getHits().getTotalHits() will always return the size instead of required limited size
-            totalAmount += response.getHits().getHits().length;
+            totalAmount += hitCount;
+            totalTime += (end-start)/1000;
         }
-        long end = System.currentTimeMillis();
-        System.out.println("Total time spent for " + records.size() + " queries: " + (end-start) / 1000 + "s");
+
+        Collections.sort(timeSpent);
+        Collections.sort(hitCounts);
+        System.out.println("Total time spent for " + records.size() + " queries: " + totalTime / (float)records.size() + "s");
         System.out.println("Average return size: " + totalAmount / (float)records.size());
+        System.out.println("Total time P50 " + percentile(timeSpent, 50));
+        System.out.println("Total time P99 " + percentile(timeSpent, 99));
+
+        System.out.println("Total hits P50 " + percentile(hitCounts, 50));
+        System.out.println("Total hits P99 " + percentile(hitCounts, 99));
+    }
+
+    private long percentile(List<Long> latencies, double percentile) {
+        int index = (int) Math.ceil(percentile / 100.0 * latencies.size());
+        return latencies.get(index-1);
     }
 
     public void loadData(String index, int threads) throws IOException, InterruptedException {
