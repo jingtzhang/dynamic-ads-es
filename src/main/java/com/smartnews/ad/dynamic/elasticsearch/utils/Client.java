@@ -7,6 +7,8 @@ import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest.*;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -16,6 +18,10 @@ import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.client.indices.GetIndexResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -86,6 +93,35 @@ public class Client {
 
     private String readMappingConfig() throws IOException {
         return new String(Files.readAllBytes(Paths.get("src/main/java/com/smartnews/ad/dynamic/elasticsearch/config/index.json")));
+    }
+
+    private SearchResponse query(String index, String queryString, int limit) throws IOException {
+        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(queryString, "title", "title.ngram", "description", "second_category", "third_category");
+        multiMatchQueryBuilder.operator(Operator.AND);
+
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(multiMatchQueryBuilder);
+        searchSourceBuilder.size(limit);
+
+        SearchRequest searchRequest = new SearchRequest(index);
+        searchRequest.source(searchSourceBuilder);
+        return highLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+    }
+
+    public void queryTest(String index, int limit) throws IOException {
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
+        Reader reader = new InputStreamReader(inputStream);
+        List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
+        long start = System.currentTimeMillis();
+        long totalAmount = 0;
+        for (CSVRecord record: records) {
+            SearchResponse response = query(index, record.get("keyword"), limit);
+            // getHits().getTotalHits() will always return the size instead of required limited size
+            totalAmount += response.getHits().getHits().length;
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("Total time spent for " + records.size() + " queries: " + (end-start) / 1000 + "s");
+        System.out.println("Average return size: " + totalAmount / (float)records.size());
     }
 
     public void loadData(String index, int threads) throws IOException, InterruptedException {

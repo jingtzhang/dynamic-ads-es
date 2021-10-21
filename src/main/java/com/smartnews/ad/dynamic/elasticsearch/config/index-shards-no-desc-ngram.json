@@ -106,13 +106,6 @@
     "properties" : {
       "description" : {
         "type" : "text",
-        "fields" : {
-          "ngram" : {
-            "type" : "text",
-            "analyzer" : "ja_ngram_index_analyzer",
-            "search_analyzer" : "ja_ngram_search_analyzer"
-          }
-        },
         "analyzer" : "ja_kuromoji_index_analyzer",
         "search_analyzer" : "ja_kuromoji_search_analyzer"
       },
