@@ -39,8 +39,8 @@ public class Client {
     private final ThreadPoolExecutor executor;
 
     public Client() {
-//        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
-        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200));
+        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
+//        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200));
         highLevelClient = new RestHighLevelClient(builder);
         executor = new ThreadPoolExecutor(10, 20, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
     }
@@ -91,59 +91,15 @@ public class Client {
         return new String(Files.readAllBytes(Paths.get("src/main/java/com/smartnews/ad/dynamic/elasticsearch/config/index.json")));
     }
 
-    private SearchResponse query(String index, String queryString, int limit) throws IOException {
-        String query =
-                "\"bool\": {\n" +
-                "  \"must\": [\n" +
-                "    {\n" +
-                "      \"match\":\n" +
-                "      {\n" +
-                "        \"title\": {\n" +
-                "          \"query\": \"" +queryString+ "\",\n" +
-                "          \"minimum_should_match\": \"90%\"\n" +
-                "        }\n" +
-                "      },\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"match\":\n" +
-                "      {\n" +
-                "        \"title.ngram\": {\n" +
-                "          \"query\": \"" +queryString+ "\",\n" +
-                "          \"minimum_should_match\": \"90%\"\n" +
-                "        }\n" +
-                "      },\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"should\": [\n" +
-                "    {\n" +
-                "      \"match\": {\n" +
-                "        \"second_category\": {\n" +
-                "          \"query\": \"" +queryString+ "\",\n" +
-                "          \"operator\": \"and\"\n" +
-                "        }\n" +
-                "      }\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"match\": {\n" +
-                "        \"third_category\": {\n" +
-                "          \"query\":\"" +queryString+ "\",\n" +
-                "          \"operator\": \"and\"\n" +
-                "        }\n" +
-                "      }\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}";
-        MatchQueryBuilder mustMultiMatchQueryBuilder1 = new MatchQueryBuilder(queryString, "title").minimumShouldMatch("90%");
-        MatchQueryBuilder mustMultiMatchQueryBuilder2 = new MatchQueryBuilder(queryString, "title.ngram").minimumShouldMatch("90%");
-        MatchQueryBuilder shouldMultiMatchQueryBuilder1 = new MatchQueryBuilder(queryString, "second_category");
+    public SearchResponse query(String index, String queryString, int limit) throws IOException {
+        MatchQueryBuilder mustMultiMatchQueryBuilder1 = new MatchQueryBuilder( "title", queryString).minimumShouldMatch("90%");
+        MatchQueryBuilder mustMultiMatchQueryBuilder2 = new MatchQueryBuilder( "title.ngram", queryString).minimumShouldMatch("90%");
+        MatchQueryBuilder shouldMultiMatchQueryBuilder1 = new MatchQueryBuilder( "second_category", queryString);
         shouldMultiMatchQueryBuilder1.operator(Operator.AND);
-        MatchQueryBuilder shouldMultiMatchQueryBuilder2 = new MatchQueryBuilder(queryString, "third_category");
+        MatchQueryBuilder shouldMultiMatchQueryBuilder2 = new MatchQueryBuilder( "third_category", queryString);
         shouldMultiMatchQueryBuilder2.operator(Operator.AND);
         BoolQueryBuilder booleanQueryBuilder = QueryBuilders.boolQuery();
         booleanQueryBuilder.must(mustMultiMatchQueryBuilder1).must(mustMultiMatchQueryBuilder2).should(shouldMultiMatchQueryBuilder1).should(shouldMultiMatchQueryBuilder2);
-
-//        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(queryString, "title", "title.ngram", "description", "second_category", "third_category");
-//        multiMatchQueryBuilder.operator(Operator.AND);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 //        searchSourceBuilder.query(multiMatchQueryBuilder);
