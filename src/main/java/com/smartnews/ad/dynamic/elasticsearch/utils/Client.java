@@ -39,8 +39,8 @@ public class Client {
     private final ThreadPoolExecutor executor;
 
     public Client() {
-        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
-//        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200));
+//        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
+        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200));
         highLevelClient = new RestHighLevelClient(builder);
         executor = new ThreadPoolExecutor(10, 20, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
     }
