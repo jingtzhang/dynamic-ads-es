@@ -33,6 +33,7 @@ import java.nio.file.Paths;
 import java.sql.Time;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class Client {
     private final RestHighLevelClient highLevelClient;
@@ -109,8 +110,7 @@ public class Client {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
         Reader reader = new InputStreamReader(inputStream);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
-        Set<String> uniqueQuery = new HashSet<>();
-        records.forEach(r -> uniqueQuery.add(r.get("keyword")));
+        Set<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toSet());
 
         List<Long> timeSpent = new ArrayList<>();
         List<Long> hitCounts = new ArrayList<>();
