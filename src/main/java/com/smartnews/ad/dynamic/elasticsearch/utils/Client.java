@@ -24,10 +24,7 @@ import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Time;
@@ -94,8 +91,50 @@ public class Client {
     }
 
     private SearchResponse query(String index, String queryString, int limit) throws IOException {
-        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(queryString, "title", "title.ngram", "description", "second_category", "third_category");
-        multiMatchQueryBuilder.operator(Operator.AND);
+        String query = "\"bool\": {\n" +
+                "  \"must\": [\n" +
+                "    {\n" +
+                "      \"match\":\n" +
+                "      {\n" +
+                "        \"title\": {\n" +
+                "          \"query\": \"" +queryString+ "\",\n" +
+                "          \"minimum_should_match\": \"90%\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"match\":\n" +
+                "      {\n" +
+                "        \"title.ngram\": {\n" +
+                "          \"query\": \"" +queryString+ "\",\n" +
+                "          \"minimum_should_match\": \"90%\"\n" +
+                "        }\n" +
+                "      },\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"should\": [\n" +
+                "    {\n" +
+                "      \"match\": {\n" +
+                "        \"second_category\": {\n" +
+                "          \"query\": \"" +queryString+ "\",\n" +
+                "          \"operator\": \"and\"\n" +
+                "        }\n" +
+                "      }\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"match\": {\n" +
+                "        \"third_category\": {\n" +
+                "          \"query\":\"" +queryString+ "\",\n" +
+                "          \"operator\": \"and\"\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+//        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(queryString, "title", "title.ngram", "description", "second_category", "third_category");
+//        multiMatchQueryBuilder.operator(Operator.AND);
+
+        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(new ByteArrayInputStream(query.getBytes()));
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(multiMatchQueryBuilder);
