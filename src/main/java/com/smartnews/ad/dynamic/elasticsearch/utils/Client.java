@@ -1,6 +1,7 @@
 package com.smartnews.ad.dynamic.elasticsearch.utils;
 
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
@@ -146,54 +147,43 @@ public class Client {
         return latencies.get(index-1);
     }
 
-    public void loadData(String index, int threads) throws IOException, InterruptedException {
-//        BulkRequest bulkRequest = new BulkRequest();
-
+    public void load(String index, int threads, int maxListSize) throws InterruptedException, IOException, ExecutionException {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("mock_data.csv");
         Reader reader = new InputStreamReader(inputStream);
-        List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().withDelimiter('\t').parse(reader).getRecords();
-//        for (int i = 0; i < records.size(); i++) {
-//            CSVRecord record = records.get(i);
-//            if (i > 0 && i % 1000 == 0) {
-//                System.out.println("Collect " + i + " items, inserting...");
-//                BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
-//                System.out.println(bulkResponse.status());
-//                System.out.println(bulkResponse.hasFailures());
-//                bulkRequest = new BulkRequest();
-//            }
-//            bulkRequest.add(new IndexRequest(index).source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
-//        }
-//        if (bulkRequest.numberOfActions() > 0) {
-//            System.out.println("Last " + bulkRequest.numberOfActions() + " items, inserting...");
-//            BulkResponse bulkResponse = highLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
-//            System.out.println(bulkResponse.status());
-//            System.out.println(bulkResponse.hasFailures());
-//        }
+        CSVParser records = CSVFormat.DEFAULT.withFirstRecordAsHeader().withDelimiter('\t').parse(reader);
+        int count = 0;
+        List<CSVRecord> list = new ArrayList<>();
+        for (CSVRecord record: records) {
+            list.add(record);
+            count++;
+            if (count == maxListSize) {
+                loadData(list, index, threads);
+                list = new ArrayList<>();
+                count = 0;
+            }
+        }
+    }
+
+    private void loadData(List<CSVRecord> records, String index, int threads) throws InterruptedException, ExecutionException {
         List<BulkRequest> bulkRequests = new ArrayList<>(threads);
         for (int i = 0; i < threads; i++) {
             bulkRequests.add(new BulkRequest());
         }
-        List<Callable<Object>> todo = new ArrayList<>();
+        List<Future<Object>> futures = new ArrayList<>();
         for (int i = 0; i < threads; i++) {
             int finalI = i;
-            todo.add(Executors.callable(() -> {
+            futures.add(executor.submit(() -> {
                 try {
                     helper(index, highLevelClient, records, finalI, bulkRequests.get(finalI), threads);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                return null;
             }));
-
-//            executor.submit(() -> {
-//                try {
-//                    helper(index, highLevelClient, records, finalI, bulkRequests.get(finalI), threads);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            });
         }
-        executor.invokeAll(todo);
-        while (true);
+        for (Future<Object> future: futures) {
+            future.get();
+        }
     }
 
     private void helper(String indexName, RestHighLevelClient client, List<CSVRecord> records, int index, BulkRequest bulkRequest, int threads) throws IOException {
@@ -203,7 +193,7 @@ public class Client {
                 CSVRecord record = records.get(i);
                 bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
             }
-            if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 1000 == 0) {
+            if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 2000 == 0) {
                 System.out.println("Collect " + bulkRequest.numberOfActions() + " items, inserting...");
                 client.bulk(bulkRequest, RequestOptions.DEFAULT);
                 bulkRequest = new BulkRequest();

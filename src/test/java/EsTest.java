@@ -3,14 +3,15 @@ import org.junit.Test;
 
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 public class EsTest {
 
     private final Client client = new Client();
 
     @Test
-    public void loadTest() throws IOException, InterruptedException {
-        client.loadData("test-2", 5);
+    public void loadTest() throws IOException, InterruptedException, ExecutionException {
+        client.load("test-4", 5, 100000);
     }
 
     @Test
