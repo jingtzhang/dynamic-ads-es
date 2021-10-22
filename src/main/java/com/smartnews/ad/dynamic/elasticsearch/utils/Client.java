@@ -17,6 +17,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.client.indices.GetIndexResponse;
+import org.elasticsearch.common.io.stream.InputStreamStreamInput;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
@@ -134,7 +135,7 @@ public class Client {
 //        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(queryString, "title", "title.ngram", "description", "second_category", "third_category");
 //        multiMatchQueryBuilder.operator(Operator.AND);
 
-        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(new ByteArrayInputStream(query.getBytes()));
+        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(new InputStreamStreamInput(new ByteArrayInputStream(query.getBytes())));
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(multiMatchQueryBuilder);
