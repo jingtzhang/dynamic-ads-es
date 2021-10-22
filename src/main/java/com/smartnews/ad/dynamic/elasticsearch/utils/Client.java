@@ -116,6 +116,7 @@ public class Client {
         List<Long> hitCounts = new ArrayList<>();
         long totalTime = 0;
         long totalAmount = 0;
+        long hitQueryNumber = 0;
 
         for (String queryString: uniqueQuery) {
             long start = System.currentTimeMillis();
@@ -124,22 +125,25 @@ public class Client {
             timeSpent.add(end-start);
 
             int hitCount = response.getHits().getHits().length;
+            if (hitCount > 0) hitQueryNumber += 1;
             hitCounts.add((long) hitCount);
 
             // getHits().getTotalHits() will always return the size instead of required limited size
             totalAmount += hitCount;
-            totalTime += (end-start)/1000;
+            totalTime += end-start;
         }
 
         Collections.sort(timeSpent);
         Collections.sort(hitCounts);
-        System.out.println("Total time spent for " + records.size() + " queries: " + totalTime / (float)records.size() + "s");
-        System.out.println("Average return size: " + totalAmount / (float)records.size());
+        System.out.println("Average time spent for " + uniqueQuery.size() + " queries: " + (float)totalTime / (float)uniqueQuery.size() + "ms");
         System.out.println("Total time P50 " + percentile(timeSpent, 50));
         System.out.println("Total time P99 " + percentile(timeSpent, 99));
 
+        System.out.println("Average return size: " + totalAmount / (float)uniqueQuery.size());
         System.out.println("Total hits P50 " + percentile(hitCounts, 50));
         System.out.println("Total hits P99 " + percentile(hitCounts, 99));
+
+        System.out.println("Among " + uniqueQuery.size() + " queries, " + hitQueryNumber + " queries got result, which is " + (float)hitQueryNumber/uniqueQuery.size());
     }
 
     private long percentile(List<Long> latencies, double percentile) {
