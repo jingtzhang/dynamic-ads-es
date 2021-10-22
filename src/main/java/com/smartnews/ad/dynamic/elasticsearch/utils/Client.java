@@ -4,6 +4,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
+import org.apache.lucene.queryparser.xml.builders.BooleanQueryBuilder;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest.*;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -20,8 +21,7 @@ import org.elasticsearch.client.indices.GetIndexResponse;
 import org.elasticsearch.common.io.stream.InputStreamStreamInput;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
@@ -92,7 +92,8 @@ public class Client {
     }
 
     private SearchResponse query(String index, String queryString, int limit) throws IOException {
-        String query = "\"bool\": {\n" +
+        String query =
+                "\"bool\": {\n" +
                 "  \"must\": [\n" +
                 "    {\n" +
                 "      \"match\":\n" +
@@ -132,13 +133,21 @@ public class Client {
                 "    }\n" +
                 "  ]\n" +
                 "}";
+        MatchQueryBuilder mustMultiMatchQueryBuilder1 = new MatchQueryBuilder(queryString, "title").minimumShouldMatch("90%");
+        MatchQueryBuilder mustMultiMatchQueryBuilder2 = new MatchQueryBuilder(queryString, "title.ngram").minimumShouldMatch("90%");
+        MatchQueryBuilder shouldMultiMatchQueryBuilder1 = new MatchQueryBuilder(queryString, "second_category");
+        shouldMultiMatchQueryBuilder1.operator(Operator.AND);
+        MatchQueryBuilder shouldMultiMatchQueryBuilder2 = new MatchQueryBuilder(queryString, "third_category");
+        shouldMultiMatchQueryBuilder2.operator(Operator.AND);
+        BoolQueryBuilder booleanQueryBuilder = QueryBuilders.boolQuery();
+        booleanQueryBuilder.must(mustMultiMatchQueryBuilder1).must(mustMultiMatchQueryBuilder2).should(shouldMultiMatchQueryBuilder1).should(shouldMultiMatchQueryBuilder2);
+
 //        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(queryString, "title", "title.ngram", "description", "second_category", "third_category");
 //        multiMatchQueryBuilder.operator(Operator.AND);
 
-        MultiMatchQueryBuilder multiMatchQueryBuilder = new MultiMatchQueryBuilder(new InputStreamStreamInput(new ByteArrayInputStream(query.getBytes())));
-
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        searchSourceBuilder.query(multiMatchQueryBuilder);
+//        searchSourceBuilder.query(multiMatchQueryBuilder);
+        searchSourceBuilder.query(booleanQueryBuilder);
         searchSourceBuilder.size(limit);
 
         SearchRequest searchRequest = new SearchRequest(index);
