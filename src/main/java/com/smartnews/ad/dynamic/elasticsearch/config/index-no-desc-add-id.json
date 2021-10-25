@@ -29,7 +29,7 @@
       "filter": {
         "ja_search_synonym": {
           "type": "synonym",
-          "synonym_path": "synonyms.txt"
+          "synonyms_path": "synonyms.txt"
         }
       },
       "analyzer": {
