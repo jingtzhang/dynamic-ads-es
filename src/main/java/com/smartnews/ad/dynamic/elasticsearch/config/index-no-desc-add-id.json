@@ -14,10 +14,7 @@
         "ja_kuromoji_tokenizer": {
           "mode": "search",
           "type": "kuromoji_tokenizer",
-          "discard_compound_token": true,
-          "user_dictionary_rules": [
-            "東京スカイツリー,東京 スカイツリー,トウキョウ スカイツリー,カスタム名詞"
-          ]
+          "discard_compound_token": true
         },
         "ja_ngram_tokenizer": {
           "type": "ngram",
@@ -30,19 +27,9 @@
         }
       },
       "filter": {
-        "ja_index_synonym": {
-          "type": "synonym",
-          "lenient": false,
-          "synonyms": [
-          ]
-        },
         "ja_search_synonym": {
-          "type": "synonym_graph",
-          "lenient": false,
-          "synonyms": [
-            "米国, アメリカ",
-            "東京大学, 東大"
-          ]
+          "type": "synonym",
+          "synonym_path": "synonyms.txt"
         }
       },
       "analyzer": {
@@ -55,7 +42,6 @@
           "filter": [
             "kuromoji_baseform",
             "kuromoji_part_of_speech",
-            "ja_index_synonym",
             "cjk_width",
             "ja_stop",
             "kuromoji_stemmer",
