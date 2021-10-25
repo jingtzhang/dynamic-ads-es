@@ -112,7 +112,8 @@ public class Client {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
         Reader reader = new InputStreamReader(inputStream);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
-        Set<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toSet());
+//        Set<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toSet());
+        List<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toList());
 
         List<Long> timeSpent = new ArrayList<>();
         List<Long> hitCounts = new ArrayList<>();
