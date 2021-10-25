@@ -98,8 +98,8 @@ public class Client {
         booleanQueryBuilder.must(mustMultiMatchQueryBuilder1).must(mustMultiMatchQueryBuilder2).should(shouldMultiMatchQueryBuilder1).should(shouldMultiMatchQueryBuilder2);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        // return _id only
-        searchSourceBuilder.fetchSource("_id", null);
+        // return item_id only
+        searchSourceBuilder.fetchSource("item_id", null);
         searchSourceBuilder.query(booleanQueryBuilder);
         searchSourceBuilder.size(limit);
 
@@ -138,8 +138,8 @@ public class Client {
         Collections.sort(timeSpent);
         Collections.sort(hitCounts);
         System.out.println("Average time spent for " + uniqueQuery.size() + " queries: " + (float)totalTime / (float)uniqueQuery.size() + "ms");
-        System.out.println("Total time P50 " + percentile(timeSpent, 50));
-        System.out.println("Total time P99 " + percentile(timeSpent, 99));
+        System.out.println("Total time P50 " + percentile(timeSpent, 50) + " ms");
+        System.out.println("Total time P99 " + percentile(timeSpent, 99) + " ms");
 
         System.out.println("Average return size: " + totalAmount / (float)uniqueQuery.size());
         System.out.println("Total hits P50 " + percentile(hitCounts, 50));
