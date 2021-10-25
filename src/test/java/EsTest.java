@@ -16,6 +16,6 @@ public class EsTest {
 
     @Test
     public void queryTest() throws IOException {
-        client.queryTest("test-4", 500);
+        client.queryTest("test-5", 500);
     }
 }
