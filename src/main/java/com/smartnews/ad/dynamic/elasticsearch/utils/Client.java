@@ -4,6 +4,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest.*;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -36,7 +37,11 @@ public class Client {
 
     public Client() {
 //        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
-        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200));
+        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200))
+            .setRequestConfigCallback(
+                    requestConfigBuilder -> requestConfigBuilder
+                            .setSocketTimeout(60000)
+            );
         highLevelClient = new RestHighLevelClient(builder);
         executor = new ThreadPoolExecutor(10, 20, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
     }
@@ -194,7 +199,7 @@ public class Client {
     }
 
     private void helper(String indexName, RestHighLevelClient client, List<CSVRecord> records, int index, BulkRequest bulkRequest, int threads) throws IOException {
-        bulkRequest.timeout("1m");
+//        bulkRequest.timeout("1m");
         for (int i = 0 ; i < records.size(); i++) {
             if (i % threads == index) {
                 CSVRecord record = records.get(i);
