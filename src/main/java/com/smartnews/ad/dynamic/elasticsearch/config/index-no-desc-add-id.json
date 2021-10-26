@@ -117,7 +117,8 @@
           },
           "suggestion" : {
             "type" : "completion",
-            "analyzer" : "ja_ngram_search_analyzer",
+            "analyzer" : "ja_kuromoji_index_analyzer",
+            "search_analyzer" : "ja_kuromoji_search_analyzer",
             "preserve_separators" : false,
             "preserve_position_increments" : false,
             "max_input_length" : 20
