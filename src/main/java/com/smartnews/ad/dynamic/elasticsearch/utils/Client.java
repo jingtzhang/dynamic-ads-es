@@ -214,6 +214,7 @@ public class Client {
                     try {
                         client.bulk(bulkRequest, RequestOptions.DEFAULT);
                         bulkRequest = new BulkRequest();
+                        break;
                     } catch (Exception e) {
                         if (++count == maxTries) {
                             System.out.println("Retry 3 times failed, program exit");
