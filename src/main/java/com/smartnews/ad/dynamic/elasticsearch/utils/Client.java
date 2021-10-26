@@ -208,8 +208,19 @@ public class Client {
             }
             if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 2000 == 0) {
                 System.out.println("Collect " + bulkRequest.numberOfActions() + " items, inserting...");
-                client.bulk(bulkRequest, RequestOptions.DEFAULT);
-                bulkRequest = new BulkRequest();
+                int count = 0;
+                int maxTries = 3;
+                while (true) {
+                    try {
+                        client.bulk(bulkRequest, RequestOptions.DEFAULT);
+                        bulkRequest = new BulkRequest();
+                    } catch (Exception e) {
+                        if (++count == maxTries) {
+                            System.out.println("Retry 3 times failed, program exit");
+                            System.exit(1);
+                        }
+                    }
+                }
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
