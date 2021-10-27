@@ -26,13 +26,6 @@
           ]
         }
       },
-      "filter": {
-        "ja_search_synonym": {
-          "type": "synonym",
-          "lenient": true,
-          "synonyms_path": "synonyms.txt"
-        }
-      },
       "analyzer": {
         "ja_kuromoji_index_analyzer": {
           "type": "custom",
@@ -58,7 +51,6 @@
           "filter": [
             "kuromoji_baseform",
             "kuromoji_part_of_speech",
-            "ja_search_synonym",
             "cjk_width",
             "ja_stop",
             "kuromoji_stemmer",
@@ -82,7 +74,6 @@
           ],
           "tokenizer": "ja_ngram_tokenizer",
           "filter": [
-            "ja_search_synonym",
             "lowercase"
           ]
         }
