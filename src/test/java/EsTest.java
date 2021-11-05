@@ -11,7 +11,7 @@ public class EsTest {
 
     @Test
     public void loadTest() throws IOException, InterruptedException, ExecutionException {
-        client.load("test-2", 5, 100000);
+        client.load("test-1", 10, 100000);
     }
 
     @Test

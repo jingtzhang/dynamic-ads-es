@@ -203,7 +203,10 @@ public class Client {
             if (i % threads == index) {
                 CSVRecord record = records.get(i);
 //                bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "description", record.get("description"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "image_link", record.get("image_link")));
-                bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "item_id", record.get("item_id"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", record.get("click")));
+                String click = record.get("click");
+                if (click == null || click.equals("")) System.out.println("Empty Click");
+                else
+                    bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "item_id", record.get("item_id"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", Integer.parseInt(click)));
             }
             if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 2000 == 0) {
                 System.out.println("Collect " + bulkRequest.numberOfActions() + " items, inserting...");
