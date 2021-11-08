@@ -118,41 +118,66 @@ public class Client {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
         Reader reader = new InputStreamReader(inputStream);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
-        Set<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toSet());
-//        List<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toList());
+        List<String> query = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toList());
 
-        List<Long> timeSpent = new ArrayList<>();
-        List<Long> hitCounts = new ArrayList<>();
-        long totalTime = 0;
-        long totalAmount = 0;
-        long hitQueryNumber = 0;
+        Set<String> ignored = new HashSet<>();
+        List<Long> allTimeSpent = new ArrayList<>();
+        List<Long> allHitCounts = new ArrayList<>();
+        List<Long> uniqueTimeSpent = new ArrayList<>();
+        List<Long> uniqueHitCounts = new ArrayList<>();
+        long allTotalTime = 0;
+        long allTotalAmount = 0;
+        long allHitQueryNumber = 0;
+        long uniqueTotalTime = 0;
+        long uniqueTotalAmount = 0;
+        long uniqueHitQueryNumber = 0;
 
-        for (String queryString: uniqueQuery) {
+        for (String queryString: query) {
             long start = System.currentTimeMillis();
             SearchResponse response = query(index, queryString, limit);
             long end = System.currentTimeMillis();
-            timeSpent.add(end-start);
-
             int hitCount = response.getHits().getHits().length;
-            if (hitCount > 0) hitQueryNumber += 1;
-            hitCounts.add((long) hitCount);
 
-            // getHits().getTotalHits() will always return the size instead of required limited size
-            totalAmount += hitCount;
-            totalTime += end-start;
+            allTimeSpent.add(end-start);
+            if (hitCount > 0) allHitQueryNumber += 1;
+            allHitCounts.add((long) hitCount);
+            allTotalAmount += hitCount;
+            allTotalTime += end-start;
+
+            if (!ignored.contains(queryString)) {
+                uniqueTimeSpent.add(end-start);
+                if (hitCount > 0) uniqueHitQueryNumber += 1;
+                uniqueHitCounts.add((long) hitCount);
+                uniqueTotalAmount += hitCount;
+                uniqueTotalTime += end-start;
+                ignored.add(queryString);
+            }
         }
 
-        Collections.sort(timeSpent);
-        Collections.sort(hitCounts);
-        System.out.println("Average time spent for " + uniqueQuery.size() + " queries: " + (float)totalTime / (float)uniqueQuery.size() + "ms");
-        System.out.println("Total time P50 " + percentile(timeSpent, 50) + " ms");
-        System.out.println("Total time P99 " + percentile(timeSpent, 99) + " ms");
+        Collections.sort(uniqueTimeSpent);
+        Collections.sort(uniqueHitCounts);
+        System.out.println("Average time spent for " + ignored.size() + " queries: " + (float)uniqueTotalTime / (float)ignored.size() + "ms");
+        System.out.println("Total time P50 " + percentile(uniqueTimeSpent, 50) + " ms");
+        System.out.println("Total time P99 " + percentile(uniqueTimeSpent, 99) + " ms");
 
-        System.out.println("Average return size: " + totalAmount / (float)uniqueQuery.size());
-        System.out.println("Total hits P50 " + percentile(hitCounts, 50));
-        System.out.println("Total hits P99 " + percentile(hitCounts, 99));
+        System.out.println("Average return size: " + uniqueTotalAmount / (float)ignored.size());
+        System.out.println("Total hits P50 " + percentile(uniqueHitCounts, 50));
+        System.out.println("Total hits P99 " + percentile(uniqueHitCounts, 99));
 
-        System.out.println("Among " + uniqueQuery.size() + " queries, " + hitQueryNumber + " queries got result, which is " + (float)hitQueryNumber/uniqueQuery.size());
+        System.out.println("Among " + ignored.size() + " queries, " + uniqueHitQueryNumber + " queries got result, which is " + (float)uniqueHitQueryNumber/ignored.size());
+        System.out.println("-------------------------------------------------------------------------------------");
+
+        Collections.sort(allTimeSpent);
+        Collections.sort(allHitCounts);
+        System.out.println("Average time spent for " + query.size() + " queries: " + (float)allTotalTime / (float)query.size() + "ms");
+        System.out.println("Total time P50 " + percentile(allTimeSpent, 50) + " ms");
+        System.out.println("Total time P99 " + percentile(allTimeSpent, 99) + " ms");
+
+        System.out.println("Average return size: " + allTotalAmount / (float)query.size());
+        System.out.println("Total hits P50 " + percentile(allHitCounts, 50));
+        System.out.println("Total hits P99 " + percentile(allHitCounts, 99));
+
+        System.out.println("Among " + query.size() + " queries, " + allHitQueryNumber + " queries got result, which is " + (float)allHitQueryNumber/query.size());
     }
 
     private long percentile(List<Long> latencies, double percentile) {
@@ -161,7 +186,7 @@ public class Client {
     }
 
     public void load(String index, int threads, int maxListSize) throws InterruptedException, IOException, ExecutionException {
-        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("mock_data.csv");
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("rpp.csv");
         Reader reader = new InputStreamReader(inputStream);
         CSVParser records = CSVFormat.DEFAULT.withFirstRecordAsHeader().withDelimiter('\t').parse(reader);
         int count = 0;
