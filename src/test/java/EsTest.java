@@ -11,11 +11,11 @@ public class EsTest {
 
     @Test
     public void loadTest() throws IOException, InterruptedException, ExecutionException {
-        client.load("rpp-1", 10, 100000);
+        client.load("ichiba-1", 10, 100000);
     }
 
     @Test
     public void queryTest() throws IOException {
-        client.queryTest("rpp-1", 500);
+        client.queryTest("ichiba-1", 500);
     }
 }

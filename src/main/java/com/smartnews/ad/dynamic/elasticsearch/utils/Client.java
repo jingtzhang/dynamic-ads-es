@@ -186,7 +186,7 @@ public class Client {
     }
 
     public void load(String index, int threads, int maxListSize) throws InterruptedException, IOException, ExecutionException {
-        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("rpp.csv");
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("ichiba.csv");
         Reader reader = new InputStreamReader(inputStream);
         CSVParser records = CSVFormat.DEFAULT.withFirstRecordAsHeader().withDelimiter('\t').parse(reader);
         int count = 0;
