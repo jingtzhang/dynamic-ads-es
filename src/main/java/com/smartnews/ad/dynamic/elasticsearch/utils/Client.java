@@ -34,9 +34,11 @@ public class Client {
 
     private final ThreadPoolExecutor executor;
 
+    private final String[] includeFetchSource = new String[]{"item_id", "click_count", "third_category"};
+
     public Client() {
-//        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888));
-        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200))
+        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888))
+//        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200))
             .setRequestConfigCallback(
                     requestConfigBuilder -> requestConfigBuilder
                             .setSocketTimeout(60000)
@@ -103,7 +105,7 @@ public class Client {
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         // return item_id only
-        searchSourceBuilder.fetchSource("item_id", null);
+        searchSourceBuilder.fetchSource(includeFetchSource, null);
         searchSourceBuilder.query(booleanQueryBuilder);
         searchSourceBuilder.size(limit);
 
@@ -116,8 +118,8 @@ public class Client {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
         Reader reader = new InputStreamReader(inputStream);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
-//        Set<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toSet());
-        List<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toList());
+        Set<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toSet());
+//        List<String> uniqueQuery = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toList());
 
         List<Long> timeSpent = new ArrayList<>();
         List<Long> hitCounts = new ArrayList<>();
