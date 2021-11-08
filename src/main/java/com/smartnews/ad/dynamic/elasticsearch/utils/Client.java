@@ -37,8 +37,8 @@ public class Client {
     private final String[] includeFetchSource = new String[]{"item_id", "click_count", "third_category"};
 
     public Client() {
-        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888))
-//        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200))
+//        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888))
+        RestClientBuilder builder = RestClient.builder(new HttpHost("es-nlb.dynamic-ads.smartnews.net", 9200))
             .setRequestConfigCallback(
                     requestConfigBuilder -> requestConfigBuilder
                             .setSocketTimeout(60000)
