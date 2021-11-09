@@ -34,8 +34,8 @@ public class Client {
 
     private final ThreadPoolExecutor executor;
 
-//    private final String[] includeFetchSource = new String[]{"item_id", "click_count", "third_category"};
-    private final String[] includeFetchSource = new String[]{"_id"};
+    private final String[] includeFetchSource = new String[]{"item_id", "click_count", "third_category"};
+//    private final String[] includeFetchSource = new String[]{"_id"};
 
 
     public Client() {
@@ -107,7 +107,7 @@ public class Client {
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         // return item_id only
-        searchSourceBuilder.fetchSource(includeFetchSource, null);
+//        searchSourceBuilder.fetchSource(includeFetchSource, null);
         searchSourceBuilder.query(booleanQueryBuilder);
         searchSourceBuilder.size(limit);
 
