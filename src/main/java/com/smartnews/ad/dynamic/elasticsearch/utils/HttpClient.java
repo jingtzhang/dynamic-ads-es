@@ -29,15 +29,9 @@ public class HttpClient {
 
         Set<String> ignored = new HashSet<>();
         List<Long> allTimeSpent = new ArrayList<>();
-        List<Long> allHitCounts = new ArrayList<>();
         List<Long> uniqueTimeSpent = new ArrayList<>();
-        List<Long> uniqueHitCounts = new ArrayList<>();
         long allTotalTime = 0;
-        long allTotalAmount = 0;
-        long allHitQueryNumber = 0;
         long uniqueTotalTime = 0;
-        long uniqueTotalAmount = 0;
-        long uniqueHitQueryNumber = 0;
         int illegalNum = 0;
 
         for (String queryString: query) {
@@ -45,6 +39,7 @@ public class HttpClient {
                 HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + queryString.replaceAll("\\s+", "%20"));
                 long start = System.currentTimeMillis();
                 CloseableHttpResponse response = httpClient.execute(request);
+                System.out.println("Query done for: " + queryString);
                 long end = System.currentTimeMillis();
                 allTimeSpent.add(end-start);
                 if (!ignored.contains(queryString)) {
