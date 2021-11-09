@@ -48,8 +48,10 @@ public class HttpClient {
                     System.out.println(num);
                 }
                 allTimeSpent.add(end-start);
+                allTotalTime += end-start;
                 if (!ignored.contains(queryString)) {
                     uniqueTimeSpent.add(end-start);
+                    uniqueTotalTime += end-start;
                     ignored.add(queryString);
                 }
             } catch (IllegalArgumentException e) {

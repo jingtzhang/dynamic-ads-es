@@ -34,7 +34,9 @@ public class Client {
 
     private final ThreadPoolExecutor executor;
 
-    private final String[] includeFetchSource = new String[]{"item_id", "click_count", "third_category"};
+//    private final String[] includeFetchSource = new String[]{"item_id", "click_count", "third_category"};
+    private final String[] includeFetchSource = new String[]{"_id"};
+
 
     public Client() {
 //        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 8888))
@@ -233,7 +235,8 @@ public class Client {
                 String click = record.get("click");
                 if (click == null || click.equals("")) System.out.println("Empty Click");
                 else
-                    bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "item_id", record.get("item_id"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", Integer.parseInt(click)));
+//                    bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "item_id", record.get("item_id"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", Integer.parseInt(click)));
+                    bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "_id", record.get("item_id"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", Integer.parseInt(click)));
             }
             if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 2000 == 0) {
                 System.out.println("Collect " + bulkRequest.numberOfActions() + " items, inserting...");
