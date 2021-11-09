@@ -2,6 +2,7 @@ package com.smartnews.ad.dynamic.elasticsearch.utils;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -12,8 +13,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class HttpClient {
-
-    private final CloseableHttpClient httpClient = HttpClients.createDefault();
 
     private long percentile(List<Long> latencies, double percentile) {
         int index = (int) Math.ceil(percentile / 100.0 * latencies.size());
@@ -33,14 +32,21 @@ public class HttpClient {
         long allTotalTime = 0;
         long uniqueTotalTime = 0;
         int illegalNum = 0;
+        int num = 0;
 
         for (String queryString: query) {
+            CloseableHttpClient client = HttpClients.createDefault();
             try {
-                HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + queryString.replaceAll("\\s+", "%20"));
+                String newStr = queryString.replaceAll("\\s+", "%20");
+                HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + newStr);
                 long start = System.currentTimeMillis();
-                CloseableHttpResponse response = httpClient.execute(request);
-                System.out.println("Query done for: " + queryString);
+                HttpResponse response = client.execute(request);
                 long end = System.currentTimeMillis();
+                //                System.out.println("Query done for: " + queryString);
+                num += 1;
+                if (num % 1000 == 0) {
+                    System.out.println(num);
+                }
                 allTimeSpent.add(end-start);
                 if (!ignored.contains(queryString)) {
                     uniqueTimeSpent.add(end-start);
