@@ -236,7 +236,7 @@ public class Client {
                 if (click == null || click.equals("")) System.out.println("Empty Click");
                 else
 //                    bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "item_id", record.get("item_id"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", Integer.parseInt(click)));
-                    bulkRequest.add(new IndexRequest(indexName).source(XContentType.JSON, "title", record.get("title"), "_id", record.get("item_id"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", Integer.parseInt(click)));
+                    bulkRequest.add(new IndexRequest(indexName).id(record.get("item_id")).source(XContentType.JSON, "title", record.get("title"), "second_category", record.get("second_category"), "third_category", record.get("third_category"), "click_count", Integer.parseInt(click)));
             }
             if (bulkRequest.numberOfActions() > 0 && bulkRequest.numberOfActions() % 2000 == 0) {
                 System.out.println("Collect " + bulkRequest.numberOfActions() + " items, inserting...");
