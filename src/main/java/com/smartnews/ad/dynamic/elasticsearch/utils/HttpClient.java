@@ -60,6 +60,7 @@ public class HttpClient {
                 e.printStackTrace();
             }
         }
+        System.out.println("Illegal num: " + illegalNum);
         Collections.sort(uniqueTimeSpent);
         System.out.println("Average time spent for " + (ignored.size()-illegalNum) + " queries: " + (float)uniqueTotalTime / (float)(ignored.size()-illegalNum) + "ms");
         System.out.println("Total time P50 " + percentile(uniqueTimeSpent, 50) + " ms");
