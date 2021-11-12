@@ -15,6 +15,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.lang.Thread.sleep;
+
 public class HttpClient {
 
     private long percentile(List<Long> latencies, double percentile) {
@@ -75,7 +77,7 @@ public class HttpClient {
         System.out.println("Total time P99 " + percentile(allTimeSpent, 99) + " ms");
     }
 
-    public void intensive_test() throws IOException {
+    public void intensive_test() throws IOException, InterruptedException {
         InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
         Reader reader = new InputStreamReader(inputStream);
         List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
@@ -83,7 +85,7 @@ public class HttpClient {
         reader.close();
         inputStream.close();
 
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(4, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
         while (true) {
             for (String queryString: query) {
                 executor.submit(() -> {
@@ -92,11 +94,13 @@ public class HttpClient {
                         String newStr = queryString.replaceAll("\\s+", "%20");
                         HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + newStr);
                         HttpResponse response = client.execute(request);
+                        client.close();
                     } catch (IllegalArgumentException e) {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
+                sleep(200);
             }
         }
     }
