@@ -25,4 +25,9 @@ public class EsTest {
     public void testHttp() throws IOException {
         httpClient.query();
     }
+
+    @Test
+    public void intensiveTest() throws IOException {
+        httpClient.intensive_test();
+    }
 }

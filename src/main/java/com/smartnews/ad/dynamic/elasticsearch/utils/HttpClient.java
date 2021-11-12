@@ -10,6 +10,9 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class HttpClient {
@@ -70,6 +73,29 @@ public class HttpClient {
         System.out.println("Average time spent for " + (query.size()-illegalNum) + " queries: " + (float)allTotalTime / (float)(query.size()-illegalNum) + "ms");
         System.out.println("Total time P50 " + percentile(allTimeSpent, 50) + " ms");
         System.out.println("Total time P99 " + percentile(allTimeSpent, 99) + " ms");
+    }
+
+    public void intensive_test() throws IOException {
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
+        Reader reader = new InputStreamReader(inputStream);
+        List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
+        List<String> query = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toList());
+
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
+        while (true) {
+            for (String queryString: query) {
+                executor.submit(() -> {
+                    CloseableHttpClient client = HttpClients.createDefault();
+                    try {
+                        String newStr = queryString.replaceAll("\\s+", "%20");
+                        HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + newStr);
+                        HttpResponse response = client.execute(request);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+        }
     }
 
 }
