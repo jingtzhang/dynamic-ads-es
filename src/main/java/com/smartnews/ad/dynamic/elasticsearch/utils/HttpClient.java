@@ -90,6 +90,7 @@ public class HttpClient {
                         String newStr = queryString.replaceAll("\\s+", "%20");
                         HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + newStr);
                         HttpResponse response = client.execute(request);
+                    } catch (IllegalArgumentException e) {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
