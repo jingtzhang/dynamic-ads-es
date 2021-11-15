@@ -1,15 +1,12 @@
 package com.smartnews.ad.dynamic.elasticsearch.utils;
 
-import com.sun.tools.internal.jxc.ap.Const;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.params.CoreProtocolPNames;
 
 import java.io.*;
 import java.util.*;
