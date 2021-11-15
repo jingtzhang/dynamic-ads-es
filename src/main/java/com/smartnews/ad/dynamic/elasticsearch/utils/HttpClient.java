@@ -42,10 +42,6 @@ public class HttpClient {
         for (String queryString: query) {
             CloseableHttpClient client = HttpClients.createDefault();
             try {
-//                String newStr = queryString.replaceAll("\\s+", "%20");
-//                HttpUriRequest request = RequestBuilder.post("https://search-server.dynamic-ads.smartnews.net/search/")
-//                        .setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493")
-//                        .s
                 HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search/v3/");
                 request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
                 request.setHeader("Content-type", "application/json");
@@ -56,13 +52,12 @@ public class HttpClient {
                         "  \"timestamp\": 1635837171,\n" +
                         "  \"query\":" + "\"" +queryString + "\",\n" +
                         "}";
-                StringEntity entity = new StringEntity(json);
+                StringEntity entity = new StringEntity(json, "utf-8");
                 request.setEntity(entity);
 
                 long start = System.currentTimeMillis();
                 HttpResponse response = client.execute(request);
                 long end = System.currentTimeMillis();
-                //                System.out.println("Query done for: " + queryString);
                 num += 1;
                 if (num % 1000 == 0) {
                     System.out.println(num);
@@ -106,8 +101,18 @@ public class HttpClient {
                 executor.submit(() -> {
                     CloseableHttpClient client = HttpClients.createDefault();
                     try {
-                        String newStr = queryString.replaceAll("\\s+", "%20");
-                        HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + newStr);
+                        HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search/v3/");
+                        request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
+                        request.setHeader("Content-type", "application/json");
+                        request.addHeader("Accept", "application/json");
+                        request.addHeader("Accept-Charset", "utf-8");
+                        String json = "{\n" +
+                                "  \"uuid\":\"a769758b267811ecb47c02427ae82a99b6664c7f-0\",\n" +
+                                "  \"timestamp\": 1635837171,\n" +
+                                "  \"query\":" + "\"" + queryString + "\",\n" +
+                                "}";
+                        StringEntity entity = new StringEntity(json, "utf-8");
+                        request.setEntity(entity);
                         HttpResponse response = client.execute(request);
                         client.close();
                     } catch (IllegalArgumentException e) {
