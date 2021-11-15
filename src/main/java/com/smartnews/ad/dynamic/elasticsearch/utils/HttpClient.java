@@ -49,6 +49,7 @@ public class HttpClient {
                 request.addHeader("Accept", "application/json");
                 request.addHeader("Accept-Charset", "utf-8");
                 String json = "{\n" +
+                        "  \"trigger\":\"default\",\n" +
                         "  \"uuid\":\"a769758b267811ecb47c02427ae82a99b6664c7f-0\",\n" +
                         "  \"timestamp\": " + Instant.now().getEpochSecond() + ",\n" +
                         "  \"query\":" + "\"" +queryString + "\",\n" +
@@ -109,6 +110,7 @@ public class HttpClient {
                         request.addHeader("Accept", "application/json");
                         request.addHeader("Accept-Charset", "utf-8");
                         String json = "{\n" +
+                                "  \"trigger\":\"default\",\n" +
                                 "  \"uuid\":\"a769758b267811ecb47c02427ae82a99b6664c7f-0\",\n" +
                                 "  \"timestamp\": " + Instant.now().getEpochSecond() + ",\n" +
                                 "  \"query\":" + "\"" + queryString + "\",\n" +
