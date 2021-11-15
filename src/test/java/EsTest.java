@@ -27,7 +27,7 @@ public class EsTest {
     }
 
     @Test
-    public void intensiveTest() throws IOException {
+    public void intensiveTest() throws IOException, InterruptedException {
         httpClient.intensive_test();
     }
 }

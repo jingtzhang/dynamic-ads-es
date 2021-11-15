@@ -1,12 +1,15 @@
 package com.smartnews.ad.dynamic.elasticsearch.utils;
 
+import com.sun.tools.internal.jxc.ap.Const;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.params.CoreProtocolPNames;
 
 import java.io.*;
 import java.util.*;
@@ -42,8 +45,23 @@ public class HttpClient {
         for (String queryString: query) {
             CloseableHttpClient client = HttpClients.createDefault();
             try {
-                String newStr = queryString.replaceAll("\\s+", "%20");
-                HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + newStr);
+//                String newStr = queryString.replaceAll("\\s+", "%20");
+//                HttpUriRequest request = RequestBuilder.post("https://search-server.dynamic-ads.smartnews.net/search/")
+//                        .setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493")
+//                        .s
+                HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search/v3/");
+                request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
+                request.setHeader("Content-type", "application/json");
+                request.addHeader("Accept", "application/json");
+                request.addHeader("Accept-Charset", "utf-8");
+                String json = "{\n" +
+                        "  \"uuid\":\"a769758b267811ecb47c02427ae82a99b6664c7f-0\",\n" +
+                        "  \"timestamp\": 1635837171,\n" +
+                        "  \"query\":" + "\"" +queryString + "\",\n" +
+                        "}";
+                StringEntity entity = new StringEntity(json);
+                request.setEntity(entity);
+
                 long start = System.currentTimeMillis();
                 HttpResponse response = client.execute(request);
                 long end = System.currentTimeMillis();
