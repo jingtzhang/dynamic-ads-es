@@ -23,7 +23,7 @@ public class EsTest {
 
     @Test
     public void indexSwitchTest() throws IOException, InterruptedException {
-        client.keepQueryEs("rakuten-4", 500);
+        client.keepQueryEs("rakuten", 500);
     }
 
     @Test
