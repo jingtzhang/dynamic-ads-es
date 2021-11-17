@@ -4,6 +4,11 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.IndicesAliasesRequest.*;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -25,9 +30,12 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+
+import static java.lang.Thread.sleep;
 
 public class Client {
     private final RestHighLevelClient highLevelClient;
@@ -180,6 +188,32 @@ public class Client {
         System.out.println("Total hits P99 " + percentile(allHitCounts, 99));
 
         System.out.println("Among " + query.size() + " queries, " + allHitQueryNumber + " queries got result, which is " + (float)allHitQueryNumber/query.size());
+    }
+
+    public void keepQueryEs(String index, int limit) throws IOException, InterruptedException {
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("query_data.csv");
+        Reader reader = new InputStreamReader(inputStream);
+        List<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader).getRecords();
+        List<String> query = records.stream().map(r -> r.get("keyword")).filter(str -> str.length() < 1024).collect(Collectors.toList());
+        reader.close();
+        inputStream.close();
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 10, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(5000000), new DiscardOldestPolicyImpl());
+        while (true) {
+            for (String queryString: query) {
+                executor.submit(() -> {
+                    try {
+                        long start = System.currentTimeMillis();
+                        SearchResponse response = query(index, queryString, limit);
+                        long end = System.currentTimeMillis();
+                        if (end - start > 1000)
+                            System.out.println("More than 1s: " + (end - start));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+                sleep(100);
+            }
+        }
     }
 
     private long percentile(List<Long> latencies, double percentile) {

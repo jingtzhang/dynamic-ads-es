@@ -22,6 +22,11 @@ public class EsTest {
     }
 
     @Test
+    public void indexSwitchTest() throws IOException, InterruptedException {
+        client.keepQueryEs("rakuten-4", 500);
+    }
+
+    @Test
     public void testHttp() throws IOException {
         httpClient.query();
     }
