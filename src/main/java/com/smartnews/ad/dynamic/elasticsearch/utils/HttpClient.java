@@ -43,7 +43,7 @@ public class HttpClient {
         for (String queryString: query) {
             CloseableHttpClient client = HttpClients.createDefault();
             try {
-                HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search/");
+                HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search");
                 request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
                 request.setHeader("Content-type", "application/json");
                 request.addHeader("Accept", "application/json");
@@ -103,7 +103,7 @@ public class HttpClient {
                 executor.submit(() -> {
                     CloseableHttpClient client = HttpClients.createDefault();
                     try {
-                        HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search/");
+                        HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search");
 
                         request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
                         request.setHeader("Content-type", "application/json");
