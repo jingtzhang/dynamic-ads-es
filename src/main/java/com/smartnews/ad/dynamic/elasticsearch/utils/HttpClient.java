@@ -104,21 +104,22 @@ public class HttpClient {
                 executor.submit(() -> {
                     CloseableHttpClient client = HttpClients.createDefault();
                     try {
-                        HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search");
-
-                        request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
-                        request.setHeader("Content-type", "application/json");
-                        request.addHeader("Accept", "application/json");
-                        request.addHeader("Accept-Charset", "utf-8");
-                        String json = "{\n" +
-                                "  \"trigger\":\"default\",\n" +
-                                "  \"custom\": {\"edition\": \"ja_JP\"},\n" +
-                                "  \"uuid\":\"a769758b267811ecb47c02427ae82a99b6664c7f-0\",\n" +
-                                "  \"timestamp\": " + Instant.now().getEpochSecond() + ",\n" +
-                                "  \"query\":" + "\"" + queryString + "\",\n" +
-                                "}";
-                        StringEntity entity = new StringEntity(json, "utf-8");
-                        request.setEntity(entity);
+                        HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/search/" + queryString.replaceAll("\\s+", "%20"));
+//                        HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search");
+//
+//                        request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
+//                        request.setHeader("Content-type", "application/json");
+//                        request.addHeader("Accept", "application/json");
+//                        request.addHeader("Accept-Charset", "utf-8");
+//                        String json = "{\n" +
+//                                "  \"trigger\":\"default\",\n" +
+//                                "  \"custom\": {\"edition\": \"ja_JP\"},\n" +
+//                                "  \"uuid\":\"a769758b267811ecb47c02427ae82a99b6664c7f-0\",\n" +
+//                                "  \"timestamp\": " + Instant.now().getEpochSecond() + ",\n" +
+//                                "  \"query\":" + "\"" + queryString + "\",\n" +
+//                                "}";
+//                        StringEntity entity = new StringEntity(json, "utf-8");
+//                        request.setEntity(entity);
                         HttpResponse response = client.execute(request);
                         client.close();
                     } catch (IllegalArgumentException e) {
