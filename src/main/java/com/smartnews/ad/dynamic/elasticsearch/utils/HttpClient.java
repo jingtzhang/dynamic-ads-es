@@ -104,7 +104,7 @@ public class HttpClient {
                 executor.submit(() -> {
                     CloseableHttpClient client = HttpClients.createDefault();
                     try {
-                        HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/test_search/" + queryString.replaceAll("\\s+", "%20"));
+                        HttpGet request = new HttpGet("https://search-server.dynamic-ads.smartnews.net/test_classification_search/" + queryString.replaceAll("\\s+", "%20"));
 //                        HttpPost request = new HttpPost("https://search-server.dynamic-ads.smartnews.net/search");
 //
 //                        request.setHeader("X-SmartNews-Ad-API-Key", "11308c98-04c5-4e6e-ab2f-0932d4ec2493");
